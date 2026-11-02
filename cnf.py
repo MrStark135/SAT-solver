@@ -60,44 +60,76 @@ class CNF:
 		values_final = [False] * self.var_count
 		values_set = [False] * self.var_count
 
-		for clause in self.clauses:
-			for var in clause:
-				# all clauses containing the var
-				tmp_clauses = [_ for _ in self.clauses if (var in _ or -var in _ )]
-				flat = [abs(_) for clause in tmp_clauses for _ in clause]
-				tmp_vars = list(set(flat))
-				tmp_vars.remove(abs(var))
-				# print(tmp_vars)
-				tmp_vars = [ var_pass for var_pass in tmp_vars if values_set[var_pass - 1] is True]
+		with tqdm(total=2 ** self.var_count) as pbar:
+			for clause in self.clauses:
+				for var in clause:
+					var_idx = abs(var) - 1
+					if all(values_set) is True:
+						return values_final
+					# don't modify a set value
+					if values_set[var_idx] is True: continue
+					# set one variable to eval this clause to True
+					if var > 0: values_final[var_idx] = True
+					else: values_final[var_idx] = False
 
-				values = [ val for val in values_final ]
-				values_true = [0] * self.var_count
-				values_false = [0] * self.var_count
+					# find all clauses containing the var
+					tmp_clauses = [_ for _ in self.clauses if (var in _ or -var in _ )]
+					for tmp_clause in tmp_clauses:
+						# if one of the clauses evals to False, degrades the whole cnf - so if SAT is to be achieved this var MUST have NOT value 
+						if self.eval_clause(tmp_clause, values_final) is False:
+							values_final[var_idx] = not values_final[var_idx]
+							values_set[var_idx] = True
+							print(var, values_final[var_idx])
+							break
+					pbar.update(1)
+			unresolved_vars = [idx for idx in range(self.var_count) if values_set[idx] is False]
+			# unresolved_values = [ False ] * len(unresolved_vars)
 
-				for tmp_clause in tmp_clauses:
-					if self.eval_clause(tmp_clause, values):
-						values_true[abs(var) - 1] += 1
-					else:
-						values_false[abs(var) - 1] += 1
+			# print(unresolved_values)
 
-					self.binary_counter(values, list(tmp_vars))
-				if values_true[abs(var) - 1] >= values_false[abs(var) - 1]:
-					values_final[abs(var) - 1] = True
-				else:
-					values_final[abs(var) - 1] = False
-				values_set[abs(var) - 1] = True
-			if all(values_set):
-				return values_final
-		return []
+			limit = 2 ** len(unresolved_vars)
+			counter = 0
 
+			while True:
+				eval = self.eval_cnf(values_final)
+				
+				if eval:
+					return values_final
+				if counter >= limit:
+					return []
+				self.binary_counter(values_final, unresolved_vars)
+				counter += 1
+			
+			print(values_set)
+			print(values_final)
+			return []
 
-		### first idea but ran into problems
-
-		# values = [ False ] * self.var_count
-		# values_set = [ False ] * self.var_count
 		# for clause in self.clauses:
 		# 	for var in clause:
-		# 		if var > 0:
-		# 			values[abs(var) - 1] = True
-		# 			values_set[abs(var) - 1] = True
-		# 		elif values_set[abs(var) - 1] is True and values[abs(var) - 1] is True
+		# 		# all clauses containing the var
+		# 		tmp_clauses = [_ for _ in self.clauses if (var in _ or -var in _ )]
+		# 		flat = [abs(_) for clause in tmp_clauses for _ in clause]
+		# 		tmp_vars = list(set(flat))
+		# 		tmp_vars.remove(abs(var))
+		# 		# print(tmp_vars)
+		# 		tmp_vars = [ var_pass for var_pass in tmp_vars if values_set[var_pass - 1] is True]
+
+		# 		values = [ val for val in values_final ]
+		# 		values_true = [0] * self.var_count
+		# 		values_false = [0] * self.var_count
+
+		# 		for tmp_clause in tmp_clauses:
+		# 			if self.eval_clause(tmp_clause, values):
+		# 				values_true[abs(var) - 1] += 1
+		# 			else:
+		# 				values_false[abs(var) - 1] += 1
+
+		# 			self.binary_counter(values, list(tmp_vars))
+		# 		if values_true[abs(var) - 1] >= values_false[abs(var) - 1]:
+		# 			values_final[abs(var) - 1] = True
+		# 		else:
+		# 			values_final[abs(var) - 1] = False
+		# 		values_set[abs(var) - 1] = True
+		# 	if all(values_set):
+		# 		return values_final
+		return []

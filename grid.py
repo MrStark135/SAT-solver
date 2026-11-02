@@ -99,14 +99,14 @@ class Grid:
 		else: return True
 
 def main() -> None:
-
 	start = time.perf_counter()
-
-	grid = Grid(2)
-	print(len(grid.rules))
+	
+	grid = Grid(3)
+	print(str(grid.size) + "x" + str(grid.size), "grid,", len(grid.rules), "rules,", grid.var_count_cnf, "variables")
+	
 	cnf = CNF(grid.var_count_cnf, grid.rules)
-	# vars = cnf.sat_binary()
-	vars = cnf.sat_calculate()
+	vars = cnf.sat_binary()
+	# vars = cnf.sat_calculate() #TODO: a faster algorithm to find a working combination
 	if len(vars) > 0:
 		print('SAT:', vars)
 		grid.display_layers(vars)
