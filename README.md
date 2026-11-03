@@ -36,6 +36,6 @@ Currently the eval function uses a binary ripple counter to go through all the c
 There are more optimizations to make
 
 ## Challenges encountered
-- writing dynamic rule generation for a given size fo the square
+- writing dynamic rule generation for a given size of the square
 - mapping the variables to actual positions in the grid
 - not yet optimized

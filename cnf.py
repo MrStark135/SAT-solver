@@ -56,80 +56,58 @@ class CNF:
 				
 				pbar.update(1)
 
-	def sat_calculate(self) -> list:
-		values_final = [False] * self.var_count
-		values_set = [False] * self.var_count
-
+	# an incredibly fast SAT algorithm, AI generated code
+	def sat_dpll(self) -> list:
 		with tqdm(total=2 ** self.var_count) as pbar:
-			for clause in self.clauses:
-				for var in clause:
-					var_idx = abs(var) - 1
-					if all(values_set) is True:
-						return values_final
-					# don't modify a set value
-					if values_set[var_idx] is True: continue
-					# set one variable to eval this clause to True
-					if var > 0: values_final[var_idx] = True
-					else: values_final[var_idx] = False
-
-					# find all clauses containing the var
-					tmp_clauses = [_ for _ in self.clauses if (var in _ or -var in _ )]
-					for tmp_clause in tmp_clauses:
-						# if one of the clauses evals to False, degrades the whole cnf - so if SAT is to be achieved this var MUST have NOT value 
-						if self.eval_clause(tmp_clause, values_final) is False:
-							values_final[var_idx] = not values_final[var_idx]
-							values_set[var_idx] = True
-							print(var, values_final[var_idx])
-							break
-					pbar.update(1)
-			unresolved_vars = [idx for idx in range(self.var_count) if values_set[idx] is False]
-			# unresolved_values = [ False ] * len(unresolved_vars)
-
-			# print(unresolved_values)
-
-			limit = 2 ** len(unresolved_vars)
-			counter = 0
-
-			while True:
-				eval = self.eval_cnf(values_final)
-				
-				if eval:
-					return values_final
-				if counter >= limit:
-					return []
-				self.binary_counter(values_final, unresolved_vars)
-				counter += 1
-			
-			print(values_set)
-			print(values_final)
+			values = self.dpll([ None ] * self.var_count, pbar)
+		if values is None:
 			return []
+		return [ val if val is not None else False for val in values ]
 
-		# for clause in self.clauses:
-		# 	for var in clause:
-		# 		# all clauses containing the var
-		# 		tmp_clauses = [_ for _ in self.clauses if (var in _ or -var in _ )]
-		# 		flat = [abs(_) for clause in tmp_clauses for _ in clause]
-		# 		tmp_vars = list(set(flat))
-		# 		tmp_vars.remove(abs(var))
-		# 		# print(tmp_vars)
-		# 		tmp_vars = [ var_pass for var_pass in tmp_vars if values_set[var_pass - 1] is True]
+	def dpll(self, values: list, pbar) -> list | None:
+		values = values[:]
 
-		# 		values = [ val for val in values_final ]
-		# 		values_true = [0] * self.var_count
-		# 		values_false = [0] * self.var_count
+		# unit propagation: force every clause that has only one literal left
+		while True:
+			forced = None
+			for clause in self.clauses:
+				unassigned = []
+				satisfied = False
+				for var in clause:
+					val = values[abs(var) - 1]
+					if val is None:
+						unassigned.append(var)
+					elif val == (var > 0): # literal is True -> clause already satisfied
+						satisfied = True
+						break
 
-		# 		for tmp_clause in tmp_clauses:
-		# 			if self.eval_clause(tmp_clause, values):
-		# 				values_true[abs(var) - 1] += 1
-		# 			else:
-		# 				values_false[abs(var) - 1] += 1
+				if satisfied: continue
+				if len(unassigned) == 0: return None # conflict
+				if len(unassigned) == 1:
+					forced = unassigned[0]
+					break
 
-		# 			self.binary_counter(values, list(tmp_vars))
-		# 		if values_true[abs(var) - 1] >= values_false[abs(var) - 1]:
-		# 			values_final[abs(var) - 1] = True
-		# 		else:
-		# 			values_final[abs(var) - 1] = False
-		# 		values_set[abs(var) - 1] = True
-		# 	if all(values_set):
-		# 		return values_final
-		return []
+			if forced is None: break
+			values[abs(forced) - 1] = forced > 0
+			# credit the subtree this collapse pruned: 2^(vars still unassigned)
+			pbar.update(2 ** values.count(None))
+
+		# pick the first unassigned variable, or declare SAT
+		var_idx = None
+		for i in range(self.var_count):
+			if values[i] is None:
+				var_idx = i
+				break
+		if var_idx is None:
+			return values
+
+		# guess True, then False - recursion handles the backtrack
+		for guess in (True, False):
+			branch = values[:]
+			branch[var_idx] = guess
+			# this guess fixes one var, leaving (unassigned - 1) free below it
+			pbar.update(2 ** (branch.count(None) - 1))
+			result = self.dpll(branch, pbar)
+			if result is not None:
+				return result
+		return None

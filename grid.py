@@ -106,7 +106,7 @@ def main() -> None:
 	
 	cnf = CNF(grid.var_count_cnf, grid.rules)
 	vars = cnf.sat_binary()
-	# vars = cnf.sat_calculate() #TODO: a faster algorithm to find a working combination
+	# vars = cnf.sat_dpll()
 	if len(vars) > 0:
 		print('SAT:', vars)
 		grid.display_layers(vars)
