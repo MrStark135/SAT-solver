@@ -1,9 +1,7 @@
-from sys import stdout
-from cnf import CNF
 import itertools
-import time
+from sys import stdout
 
-class Grid:
+class LatinSquare:
 	def __init__(self, size: int) -> None:
 		if size > 9:
 			raise ValueError("the size " + str(size) + " is too big, size <= 9 are allowed")
@@ -97,26 +95,3 @@ class Grid:
 	def symbol_allowed(self, symbol: int) -> bool:
 		if symbol > self.size or symbol < 1: return False
 		else: return True
-
-def main() -> None:
-	start = time.perf_counter()
-	
-	grid = Grid(3)
-	print(str(grid.size) + "x" + str(grid.size), "grid,", len(grid.rules), "rules,", grid.var_count_cnf, "variables")
-	
-	cnf = CNF(grid.var_count_cnf, grid.rules)
-	vars = cnf.sat_binary()
-	# vars = cnf.sat_dpll()
-	if len(vars) > 0:
-		print('SAT:', vars)
-		grid.display_layers(vars)
-		grid.apply_vars_to_grid(vars)
-		print("GRID:")
-		grid.display_grid()
-	else:
-		print('UNSAT')
-
-	end = time.perf_counter()
-	print(f"Code took {(end-start):.6f} seconds to run")
-
-main()
