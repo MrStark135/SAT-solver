@@ -1,6 +1,4 @@
-import itertools
 from sys import stdout
-from sat_solver import solver
 from . import rules
 
 class LatinSquare:

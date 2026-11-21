@@ -1,4 +1,4 @@
-from . import solver
+import solver
 
 """Tests the solver with two CNFs - SAT with one exact solution to check against, and UNSAT to check against None
 """
@@ -153,16 +153,15 @@ cnf_unsat = [
 ]
 truth_cnf_unsat = None
 
-def run_tests():
-	print("""
-	### Evaluates these asserts:
-	### - assert(solver.solve_sat(cnf_sat, False) == truth_cnf_sat)
-	### - assert(solver.solve_sat(cnf_unsat, False) == truth_cnf_unsat)
-	### - assert(solver.solve_sat(cnf_sat_small, True) == truth_cnf_sat_small)
-	""")
-	# no errors - asserts passed - the solver is working
-	assert(solver.solve_sat(cnf_sat, False) == truth_cnf_sat)
-	assert(solver.solve_sat(cnf_unsat, False) == truth_cnf_unsat)
-	assert(solver.solve_sat(cnf_sat_small, True) == truth_cnf_sat_small)
+print(""""
+### Evaluates these asserts:
+### - assert(solver.solve_sat(cnf_sat, False) == truth_cnf_sat)
+### - assert(solver.solve_sat(cnf_unsat, False) == truth_cnf_unsat)
+### - assert(solver.solve_sat(cnf_sat_small, True) == truth_cnf_sat_small)
+""")
+# no errors - asserts passed - the solver is working
+assert(solver.solve_sat(cnf_sat, False) == truth_cnf_sat)
+assert(solver.solve_sat(cnf_unsat, False) == truth_cnf_unsat)
+assert(solver.solve_sat(cnf_sat_small, True) == truth_cnf_sat_small)
 
-	print("\n### All tests passed")
+print("\n### All tests passed")

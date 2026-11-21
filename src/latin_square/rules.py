@@ -1,6 +1,10 @@
-from .latin_square import LatinSquare
-from sat_solver import solver
+import solver
 import itertools
+
+# import LatinSquare ONLY for type checks, otherwise it's a circular import
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+	from . import LatinSquare
 
 def generate_cnf_rules(latinSqure: LatinSquare) -> None:
 	"""Dynamically generates a list of rules (CNF) in the format required by the solver

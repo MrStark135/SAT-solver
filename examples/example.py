@@ -1,4 +1,4 @@
-from sat_solver.latin_square import rules, LatinSquare
+from latin_square import rules, LatinSquare
 import time
 
 def main() -> None:
