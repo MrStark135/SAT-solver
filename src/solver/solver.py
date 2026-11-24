@@ -52,6 +52,15 @@ def solve_sat(cnf: list[list[str]], debug: bool) -> dict[str, bool] | None:
 		print("CNF:", cnf)
 		print("shortest:", shortest)
 
+	clean_cnf = []
+	for clause_tmp in cnf:
+		new_clause = []
+		for literal in clause_tmp:
+			if literal not in new_clause:
+				new_clause.append(literal)
+		clean_cnf.append(new_clause)
+	cnf = clean_cnf
+
 	# reduce the CNF for all assignments of the variables of the shortest clause
 	combs = _truth_combinations(len(shortest))
 	for combination in combs:

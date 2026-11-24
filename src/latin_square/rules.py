@@ -1,3 +1,5 @@
+from __future__ import annotations # to handle backward compatibility for conditional import
+
 import solver
 import itertools
 
